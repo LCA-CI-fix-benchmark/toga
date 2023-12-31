@@ -1,3 +1,4 @@
+import pytest
 from java import jclass
 
 from toga.colors import TRANSPARENT
@@ -16,3 +17,9 @@ class ButtonProbe(LabelProbe):
     def background_color(self):
         color = super().background_color
         return None if color == TRANSPARENT else color
+
+    def assert_no_icon(self):
+        pytest.skip("Android doesn't support icons on buttons")
+
+    def assert_icon_size(self):
+        pytest.skip("Android doesn't support icons on buttons")

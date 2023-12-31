@@ -1,3 +1,4 @@
+import pytest
 import System.Windows.Forms
 from System.Drawing import SystemColors
 
@@ -15,6 +16,12 @@ class ButtonProbe(SimpleProbe):
         if self.native.Text == "\u200B":
             return ""
         return self.native.Text
+
+    def assert_no_icon(self):
+        pytest.skip("Winforms doesn't support icons on buttons")
+
+    def assert_icon_size(self):
+        pytest.skip("Winforms doesn't support icons on buttons")
 
     @property
     def background_color(self):

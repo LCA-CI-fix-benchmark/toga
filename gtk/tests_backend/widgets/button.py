@@ -1,3 +1,5 @@
+import pytest
+
 from toga.colors import TRANSPARENT
 from toga_gtk.libs import Gtk
 
@@ -10,6 +12,12 @@ class ButtonProbe(SimpleProbe):
     @property
     def text(self):
         return self.native.get_label()
+
+    def assert_no_icon(self):
+        pytest.skip("GTK doesn't support icons on buttons")
+
+    def assert_icon_size(self):
+        pytest.skip("GTK doesn't support icons on buttons")
 
     @property
     def background_color(self):
