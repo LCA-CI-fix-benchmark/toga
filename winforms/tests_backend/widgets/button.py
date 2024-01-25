@@ -18,10 +18,14 @@ class ButtonProbe(SimpleProbe):
         return self.native.Text
 
     def assert_no_icon(self):
-        pytest.skip("Winforms doesn't support icons on buttons")
+        assert self.native.Image is None
 
     def assert_icon_size(self):
-        pytest.skip("Winforms doesn't support icons on buttons")
+        icon = self.native.Image
+        if icon:
+            assert (icon.Size.Width, icon.Size.Height) == (32, 32)
+        else:
+            pytest.fail("Icon does not exist")
 
     @property
     def background_color(self):

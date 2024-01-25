@@ -31,6 +31,17 @@ class Button(TextViewWidget):
     def set_text(self, text):
         self.native.setText(text)
 
+    def get_icon(self):
+        return self._icon
+
+    def set_icon(self, icon):
+        self._icon = icon
+        # TODO:
+        # if icon:
+        #     self.native.Image = icon._impl.native.ToBitmap()
+        # else:
+        #     self.native.Image = None
+
     def set_enabled(self, value):
         self.native.setEnabled(value)
 
