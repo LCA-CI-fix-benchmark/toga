@@ -1,19 +1,9 @@
 name: CI
-on:
-  pull_request:
-  push:
-    branches:
-      - main
-  workflow_call:
-    outputs:
-      artifact-name:
-        description: "Name of the uploaded artifact; use for artifact retrieval."
-        value: ${{ jobs.package.outputs.artifact-name }}
-
+on: push
 env:
-  min_python_version: "3.8"
-  max_python_version: "3.12"
-  FORCE_COLOR: "1"
+  min_python_version: '3.8'
+  max_python_version: '3.12'
+  FORCE_COLOR: '1'
 
 defaults:
   run:
@@ -29,35 +19,35 @@ jobs:
     name: Pre-commit checks
     uses: beeware/.github/.github/workflows/pre-commit-run.yml@main
     with:
-      pre-commit-source: "./core[dev]"
+      pre-commit-source: ./core[dev]
 
   towncrier:
     name: Check towncrier
     uses: beeware/.github/.github/workflows/towncrier-run.yml@main
     with:
-      tox-source: "./core[dev]"
+      tox-source: ./core[dev]
 
   package:
     name: Python Package
     uses: beeware/.github/.github/workflows/python-package-create.yml@main
     with:
-      tox-source: "./core[dev]"
+      tox-source: ./core[dev]
       build-subdirectory: ${{ matrix.subdir }}
-      distribution-path: "*/dist/*"
+      distribution-path: '*/dist/*'
     strategy:
       matrix:
         subdir:
-        - "android"
-        - "cocoa"
-        - "core"
-        - "demo"
-        - "dummy"
-        - "gtk"
-        - "iOS"
-        - "toga"
-        - "textual"
-        - "web"
-        - "winforms"
+        - android
+        - cocoa
+        - core
+        - demo
+        - dummy
+        - gtk
+        - iOS
+        - toga
+        - textual
+        - web
+        - winforms
 
   core:
     runs-on: ${{ matrix.platform }}-latest
@@ -65,10 +55,10 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        platform: [ "macos", "ubuntu", "windows" ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        platform: [macos, ubuntu, windows]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         include:
-          - experimental: false
+        - experimental: false
           # - python-version: "3.13-dev"
           #   experimental: true
     steps:
@@ -97,7 +87,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.3
       with:
         name: core-coverage-data
-        path: "core/.coverage.*"
+        path: core/.coverage.*
         if-no-files-found: error
 
   core-coverage:
@@ -141,22 +131,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: [ "macOS", "windows", "linux", "android", "iOS" ]
+        backend: [macOS, windows, linux, android, iOS]
         include:
-          - pre-command:
-            briefcase-run-prefix:
-            briefcase-run-args:
-            setup-python: true
+        - pre-command:
+          briefcase-run-prefix:
+          briefcase-run-args:
+          setup-python: true
 
-          - backend: macOS
-            runs-on: macos-12
-            app-user-data-path: $HOME/Library/Application Support/org.beeware.toga.testbed
+        - backend: macOS
+          runs-on: macos-12
+          app-user-data-path: $HOME/Library/Application Support/org.beeware.toga.testbed
 
           # We use a fixed Ubuntu version rather than `-latest` because at some point,
           # `-latest` will be updated, but it will be a soft changeover, which would cause
           # the system Python version to become inconsistent from run to run.
-          - backend: linux
-            runs-on: ubuntu-22.04
+        - backend: linux
+          runs-on: ubuntu-22.04
             # The package list should be the same as in tutorial-0.rst, and the BeeWare
             # tutorial, plus blackbox to provide a window manager. We need a window
             # manager that is reasonably lightweight, honors full screen mode, and
@@ -164,44 +154,47 @@ jobs:
             # top-left corner of the window *content*. The default GNOME window managers of
             # most distros meet these requirements, but they're heavyweight; flwm doesn't
             # work either. Blackbox is the lightest WM we've found that works.
-            pre-command: |
-              sudo apt update -y
-              sudo apt install -y blackbox pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0
+          pre-command: |
+            sudo apt update -y
+            sudo apt install -y blackbox pkg-config python3-dev libgirepository1.0-dev libcairo2-dev gir1.2-webkit2-4.0
 
-              # Start Virtual X server
-              echo "Start X server..."
-              Xvfb :99 -screen 0 2048x1536x24 &
-              sleep 1
+            # Start Virtual X server
+            echo "Start X server..."
+            Xvfb :99 -screen 0 2048x1536x24 &
+            sleep 1
 
-              # Start Window manager
-              echo "Start window manager..."
-              DISPLAY=:99 blackbox &
-              sleep 1
+            # Start Window manager
+            echo "Start window manager..."
+            DISPLAY=:99 blackbox &
+            sleep 1
 
-            briefcase-run-prefix: 'DISPLAY=:99'
-            setup-python: false  # Use the system Python packages.
-            app-user-data-path: $HOME/.local/share/testbed
+          briefcase-run-prefix: DISPLAY=:99
+          setup-python: false    # Use the system Python packages.
+          app-user-data-path: $HOME/.local/share/testbed
 
-          - backend: windows
-            runs-on: windows-latest
-            app-user-data-path: $HOME\AppData\Local\Tiberius Yak\Toga Testbed\Data
+        - backend: windows
+          runs-on: windows-latest
+          app-user-data-path: $HOME\AppData\Local\Tiberius Yak\Toga Testbed\Data
 
-          - backend: iOS
-            runs-on: macos-12
-            briefcase-run-args: ' -d "iPhone SE (3rd generation)"'
-            app-user-data-path: $(xcrun simctl get_app_container booted org.beeware.toga.testbed data)/Documents
+        - backend: iOS
+          runs-on: macos-12
+          briefcase-run-args: ' -d "iPhone SE (3rd generation)"'
+          app-user-data-path: $(xcrun simctl get_app_container booted org.beeware.toga.testbed
+            data)/Documents
 
-          - backend: android
-            runs-on: ubuntu-latest
-            briefcase-run-args: " -d '{\"avd\":\"beePhone\",\"skin\":\"pixel_3a\"}' --Xemulator=-no-window --Xemulator=-no-snapshot --Xemulator=-no-audio --Xemulator=-no-boot-anim --shutdown-on-exit"
-            pre-command: |
-              # check if virtualization is supported...
-              sudo apt install -qq --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
-              # allow access to KVM to run the emulator
-              echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-                | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-              sudo udevadm control --reload-rules
-              sudo udevadm trigger --name-match=kvm
+        - backend: android
+          runs-on: ubuntu-latest
+          briefcase-run-args: " -d '{\"avd\":\"beePhone\",\"skin\":\"pixel_3a\"}'
+            --Xemulator=-no-window --Xemulator=-no-snapshot --Xemulator=-no-audio
+            --Xemulator=-no-boot-anim --shutdown-on-exit"
+          pre-command: |
+            # check if virtualization is supported...
+            sudo apt install -qq --no-install-recommends cpu-checker coreutils && echo "CPUs=$(nproc --all)" && kvm-ok
+            # allow access to KVM to run the emulator
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
     steps:
     - uses: actions/checkout@v4.1.1
       with:
@@ -215,7 +208,7 @@ jobs:
         # * The testbed's ProxyEventLoop has some problems with it
         #   (https://github.com/beeware/toga/issues/1982).
         # * It doesn't have an Android build of Pillow yet.
-        python-version: "3.10"
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
@@ -226,7 +219,8 @@ jobs:
 
     - name: Test App
       working-directory: testbed
-      run: ${{ matrix.briefcase-run-prefix }} briefcase run ${{ matrix.backend }} --test ${{ matrix.briefcase-run-args }}
+      run: ${{ matrix.briefcase-run-prefix }} briefcase run ${{ matrix.backend }}
+        --test ${{ matrix.briefcase-run-args }}
 
     - name: Upload logs
       uses: actions/upload-artifact@v3.1.3
